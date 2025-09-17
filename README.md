@@ -177,6 +177,28 @@ These outputs show the raw PhysicianNote domain object printed by the console ap
 
 ---
 
+## Code Coverage
+![Line Coverage](coverage/badge_linecoverage.svg)
+![Branch Coverage](coverage/badge_branchcoverage.svg)
+
+We track test coverage using [Coverlet](https://github.com/coverlet-coverage/coverlet) and [ReportGenerator](https://github.com/danielpalme/ReportGenerator).
+
+### Generate Coverage Report
+
+From the repository root, run:
+
+```bash
+dotnet test --collect:"XPlat Code Coverage"
+reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:"coverage" -reporttypes:Html
+```
+
+After running the above, open:
+
+
+[Coverage Report (coverage/index.html)](coverage/index.html)
+
+---
+
 ## 🔮 Future Improvements
 
 - Add additional DME types (e.g., nebulizers, hospital beds.)
@@ -184,3 +206,4 @@ These outputs show the raw PhysicianNote domain object printed by the console ap
 - Add richer observability (OpenTelemetry, etc.)
 - Build a web front-end or API wrapper instead of console I/O.
 - Allow configuration of multiple LLM providers (OpenAI, Azure OpenAI.)
+- Finish XML comments.

@@ -225,7 +225,7 @@ var assemblies = [
       { "name": "SignalBooster.AppServices.Extractors.Parsing.Prescriptions.PrescriptionParsing", "rp": "SignalBooster.AppServices_PrescriptionParsing.html", "cl": 28, "ucl": 2, "cal": 30, "tl": 59, "cb": 13, "tb": 14, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "SignalBooster.AppServices.Extractors.Parsing.Prescriptions.WheelchairParser", "rp": "SignalBooster.AppServices_WheelchairParser.html", "cl": 58, "ucl": 2, "cal": 60, "tl": 114, "cb": 17, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "SignalBooster.AppServices.Extractors.Simple.SimpleNoteExtractor", "rp": "SignalBooster.AppServices_SimpleNoteExtractor.html", "cl": 64, "ucl": 6, "cal": 70, "tl": 106, "cb": 13, "tb": 18, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "SignalBooster.AppServices.ResourceLocator.Resource", "rp": "SignalBooster.AppServices_Resource.html", "cl": 29, "ucl": 2, "cal": 31, "tl": 50, "cb": 16, "tb": 22, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "SignalBooster.AppServices.ResourceLocator.Resource", "rp": "SignalBooster.AppServices_Resource.html", "cl": 23, "ucl": 2, "cal": 25, "tl": 50, "cb": 10, "tb": 12, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
   {
     "name": "SignalBooster.Domain",
