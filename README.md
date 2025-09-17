@@ -19,7 +19,7 @@ This project demonstrates a refactoring of the original "Signal Booster" utility
 
 ## 🤖 AI Development Tools
 
-Yes — ChatGPT was used as an AI pair-programmer during development for brainstorming, refactoring suggestions, test scaffolding, and documentation.  
+ChatGPT was used as an AI pair-programmer during development for brainstorming, refactoring suggestions, test scaffolding, and documentation.  
 No GitHub Copilot, Cursor, or Cody were used in this project.
 
 ---
@@ -111,7 +111,7 @@ The app will:
 
 1. Extract a `PhysicianNote` domain object
 2. Print its JSON representation
-3. Send a legacy-formatted request to the external API endpoint
+3. Send a formatted request to the external API endpoint
 
 ---
 
