@@ -2,5 +2,5 @@
 
 public interface ILlmClient
 {
-    Task<string> CompleteJsonAsync(string systemPrompt, string userContent, CancellationToken ct = default);
+    Task<string> GetJsonAsync(string systemPrompt, string userContent, CancellationToken ct = default);
 }

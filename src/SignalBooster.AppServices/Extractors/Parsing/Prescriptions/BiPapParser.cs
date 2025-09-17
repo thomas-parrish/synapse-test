@@ -15,13 +15,13 @@ internal sealed class BiPapParser : IPrescriptionParser
         // IPAP/EPAP patterns:
         //  - "IPAP: 16 cm H2O" or "IPAP=16 cmH2O"
         //  - "EPAP: 8 cm H2O"
-        var ipap = IPrescriptionParser.ParseFirstInt(fullText, @"\bIPAP\s*[:=]?\s*(\d{1,2})\s*cm\s*H2O\b");
-        var epap = IPrescriptionParser.ParseFirstInt(fullText, @"\bEPAP\s*[:=]?\s*(\d{1,2})\s*cm\s*H2O\b");
+        var ipap = PrescriptionParsing.ParseFirstInt(fullText, @"\bIPAP\s*[:=]?\s*(\d{1,2})\s*cm\s*H2O\b");
+        var epap = PrescriptionParsing.ParseFirstInt(fullText, @"\bEPAP\s*[:=]?\s*(\d{1,2})\s*cm\s*H2O\b");
 
         // Backup rate (optional): "backup rate: 12"
-        var backup = IPrescriptionParser.ParseFirstInt(fullText, @"\bbackup\s*rate\s*[:=]?\s*(\d{1,2})\b");
+        var backup = PrescriptionParsing.ParseFirstInt(fullText, @"\bbackup\s*rate\s*[:=]?\s*(\d{1,2})\b");
 
-        var mask = IPrescriptionParser.ParseMaskType(hint);
+        var mask = PrescriptionParsing.ParseMaskType(hint);
         var heated = hint.Contains("heated humidifier");
         var ahi = AhiParser.Parse(KeyValueParser.Get(fields, "AHI"), fullText);
 

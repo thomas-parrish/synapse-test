@@ -11,7 +11,7 @@ internal sealed class CpapParser : IPrescriptionParser
 
     public IDevicePrescription? Parse(Dictionary<string, string> fields, string fullText, string hint)
     {
-        var mask = IPrescriptionParser.ParseMaskType(hint);
+        var mask = PrescriptionParsing.ParseMaskType(hint);
         var heated = hint.Contains("heated humidifier");
         var ahi = AhiParser.Parse(KeyValueParser.Get(fields, "AHI"), fullText);
 

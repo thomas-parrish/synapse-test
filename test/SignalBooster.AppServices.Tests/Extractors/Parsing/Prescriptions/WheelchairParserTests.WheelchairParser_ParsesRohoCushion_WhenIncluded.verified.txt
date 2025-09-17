@@ -1,0 +1,12 @@
+﻿{
+  OrderingPhysician: Dr. James Allen,
+  PatientName: Susan Young,
+  PatientDateOfBirth: 1970-06-25,
+  Diagnosis: Paraplegia,
+  Prescription: {
+    device: Wheelchair,
+    Type: power,
+    Cushion: roho,
+    Device: Wheelchair
+  }
+}

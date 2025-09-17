@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using SignalBooster.Domain;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
 
@@ -31,25 +32,11 @@ public sealed class ExternalOrderClient : IExternalOrderClient
 
         try
         {
-            //Normally I wouldn't do this but I wanted a quick way to just show the reviewer the request format
-            //in a readable fashion while leaving the request itself optimized
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                try
-                {
-                    using var jdoc = JsonDocument.Parse(payload);
-                    var pretty = JsonSerializer.Serialize(
-                        jdoc,
-                        new JsonSerializerOptions { WriteIndented = true });
+            //I would never do this in a production app because it will add sensitive PHI exposure in logs
+            //but for the purposes of this assignment I wanted to be able to show the externally formatted
+            //requests to a revier in a readable fashion while leaving the request itself optimized
 
-                    _logger.LogDebug("POST payload:\n{Payload}", pretty);
-                }
-                catch
-                {
-                    // If it's not valid JSON, just log as-is
-                    _logger.LogDebug("POST payload (raw): {Payload}", payload);
-                }
-            }
+            LogDebugPayload(payload);
 
             _logger.LogInformation("POST {Endpoint} payloadLength={Length}", endpoint, payload.Length);
 
@@ -74,6 +61,28 @@ public sealed class ExternalOrderClient : IExternalOrderClient
         {
             _logger.LogError(ex, "POST {Endpoint} threw exception.", endpoint);
             return false;
+        }
+    }
+
+    [ExcludeFromCodeCoverage]
+    private void LogDebugPayload(string payload)
+    {
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            try
+            {
+                using var jdoc = JsonDocument.Parse(payload);
+                var pretty = JsonSerializer.Serialize(
+                    jdoc,
+                    new JsonSerializerOptions { WriteIndented = true });
+
+                _logger.LogDebug("POST payload:\n{Payload}", pretty);
+            }
+            catch
+            {
+                // If it's not valid JSON, just log as-is
+                _logger.LogDebug("POST payload (raw): {Payload}", payload);
+            }
         }
     }
 }

@@ -19,8 +19,8 @@ internal sealed class WheelchairParser : IPrescriptionParser
         // --- Measurements ---
         // Examples supported:
         //   "seat width 18\"", "seat width 18 in", "seat width: 18 inches"
-        var seatWidth = IPrescriptionParser.ParseFirstInt(fullText, @"\bseat\s*width\s*[:=]?\s*(\d{1,2})\s*(?:\""|in(?:ches)?)?\b");
-        var seatDepth = IPrescriptionParser.ParseFirstInt(fullText, @"\bseat\s*depth\s*[:=]?\s*(\d{1,2})\s*(?:\""|in(?:ches)?)?\b");
+        var seatWidth = PrescriptionParsing.ParseFirstInt(fullText, @"\bseat\s*width\s*[:=]?\s*(\d{1,2})\s*(?:\""|in(?:ches)?)?\b");
+        var seatDepth = PrescriptionParsing.ParseFirstInt(fullText, @"\bseat\s*depth\s*[:=]?\s*(\d{1,2})\s*(?:\""|in(?:ches)?)?\b");
 
         // --- Accessories ---
         var legRests = FindLegRests(fullText);

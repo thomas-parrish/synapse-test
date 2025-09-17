@@ -1,0 +1,12 @@
+﻿{
+  OrderingPhysician: Dr. Kevin Patel,
+  PatientName: Alice Martinez,
+  PatientDateOfBirth: 1968-11-05,
+  Diagnosis: Advanced multiple sclerosis,
+  Prescription: {
+    device: Wheelchair,
+    Type: power,
+    LegRests: swing-away,
+    Device: Wheelchair
+  }
+}

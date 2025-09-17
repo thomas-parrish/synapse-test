@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SignalBooster.Infrastructure.OpenAiClient;
+namespace SignalBooster.Infrastructure.OpenAi;
 
 public sealed class OpenAiConfiguration
 {

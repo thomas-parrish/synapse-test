@@ -38,6 +38,7 @@ No GitHub Copilot, Cursor, or Cody were used in this project.
   - Oxygen Tank
   - Wheelchair
 - Additional DME devices could be added by extending the `IPrescriptionParser` interface (and/or updating the OpenAi prompt.)
+- I have had zero exposure to the DME domain and so I relied entirely on GPT for domain expertise. In a real scneario I would leverage the Product team SMEs for this information.
 - AHI qualifier rules are simplified from American Academy of Sleep Medicine (AASM) cutoffs and may not reflect all insurance/billing guidelines.
 - For structured extraction via OpenAI, the system prompt enforces JSON-only responses; however, malformed LLM output may still require future hardening.
 - No database is included — the app is stateless and reads notes from files.

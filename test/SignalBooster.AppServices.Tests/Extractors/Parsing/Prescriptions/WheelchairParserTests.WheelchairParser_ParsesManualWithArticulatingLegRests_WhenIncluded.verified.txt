@@ -1,0 +1,12 @@
+﻿{
+  OrderingPhysician: Dr. Robert Green,
+  PatientName: Laura Smith,
+  PatientDateOfBirth: 1977-09-09,
+  Diagnosis: Quadriceps contracture post-injury,
+  Prescription: {
+    device: Wheelchair,
+    Type: manual,
+    LegRests: articulating,
+    Device: Wheelchair
+  }
+}

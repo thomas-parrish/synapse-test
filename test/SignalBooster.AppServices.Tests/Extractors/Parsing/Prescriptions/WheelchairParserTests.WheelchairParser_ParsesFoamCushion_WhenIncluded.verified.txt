@@ -1,0 +1,12 @@
+﻿{
+  OrderingPhysician: Dr. Anthony Reid,
+  PatientName: Karen Wells,
+  PatientDateOfBirth: 1960-08-01,
+  Diagnosis: Degenerative disc disease,
+  Prescription: {
+    device: Wheelchair,
+    Type: manual,
+    Cushion: foam,
+    Device: Wheelchair
+  }
+}

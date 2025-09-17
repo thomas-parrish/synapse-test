@@ -22,11 +22,11 @@ public sealed partial class SimpleNoteExtractor : INoteExtractor
         ];
     }
 
-    public PhysicianNote Extract(string rawNote)
+    public Task<PhysicianNote> ExtractAsync(string rawNote)
     {
         if (string.IsNullOrWhiteSpace(rawNote))
         {
-            return EmptyNote();
+            return Task.FromResult(EmptyNote());
         }
 
         var text = UnwrapDataIfJson(rawNote);
@@ -59,14 +59,14 @@ public sealed partial class SimpleNoteExtractor : INoteExtractor
             }
         }
 
-        return new PhysicianNote
+        return Task.FromResult(new PhysicianNote
         {
             PatientName = name,
             PatientDateOfBirth = dob,
             Diagnosis = dx,
             OrderingPhysician = phys,
             Prescription = prescription
-        };
+        });
     }
 
     private static string UnwrapDataIfJson(string raw)

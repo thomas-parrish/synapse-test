@@ -165,24 +165,32 @@ public sealed class ExternalOrderRequestFormatter : IOrderRequestFormatter
             return null;
         }
 
-        var age = CalculateAge(dob, DateOnly.FromDateTime(DateTime.Today));
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        var age = CalculateAge(dob, today);
         var isAdult = age >= 18;
 
-        if (isAdult)
-        {
-            if (ahi >= 30) return "AHI > 30 (severe, adult)";
-            if (ahi >= 15) return "AHI > 15 (moderate, adult)";
-            if (ahi >= 5) return "AHI > 5 (mild, adult)";
-            return "AHI < 5 (normal, adult)";
-        }
-        else
-        {
-            if (ahi >= 10) return "AHI > 10 (severe, pediatric)";
-            if (ahi >= 5) return "AHI > 5 (moderate, pediatric)";
-            if (ahi >= 1) return "AHI > 1 (mild, pediatric)";
-            return "AHI < 1 (normal, pediatric)";
-        }
+        return isAdult
+            ? BuildAdultAhiQualifier(ahi.Value)
+            : BuildPediatricAhiQualifier(ahi.Value);
     }
+
+    private static string BuildAdultAhiQualifier(int ahi) =>
+        ahi switch
+        {
+            >= 30 => "AHI > 30 (severe, adult)",
+            >= 15 => "AHI > 15 (moderate, adult)",
+            >= 5 => "AHI > 5 (mild, adult)",
+            _ => "AHI < 5 (normal, adult)"
+        };
+
+    private static string BuildPediatricAhiQualifier(int ahi) =>
+        ahi switch
+        {
+            >= 10 => "AHI > 10 (severe, pediatric)",
+            >= 5 => "AHI > 5 (moderate, pediatric)",
+            >= 1 => "AHI > 1 (mild, pediatric)",
+            _ => "AHI < 1 (normal, pediatric)"
+        };
 
     private static int CalculateAge(DateOnly? dob, DateOnly today)
     {

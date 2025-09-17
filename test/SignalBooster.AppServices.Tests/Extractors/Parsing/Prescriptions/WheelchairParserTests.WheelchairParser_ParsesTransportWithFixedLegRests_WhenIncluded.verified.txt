@@ -1,0 +1,12 @@
+﻿{
+  OrderingPhysician: Dr. Emily Chen,
+  PatientName: George White,
+  PatientDateOfBirth: 1942-07-22,
+  Diagnosis: Post-stroke with limited endurance,
+  Prescription: {
+    device: Wheelchair,
+    Type: transport,
+    LegRests: fixed,
+    Device: Wheelchair
+  }
+}

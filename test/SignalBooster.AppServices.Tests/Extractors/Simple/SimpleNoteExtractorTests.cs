@@ -6,28 +6,37 @@ namespace SignalBooster.AppServices.Tests.Extractors.Simple;
 public sealed class SimpleNoteExtractorTests
 {
     [Fact]
-    public async Task Should_Extract_Oxygen_From_Valid_Text()
+    public async Task ExtractAsync_ReturnsEmptyNote_OnNullOrWhitespace()
+    {
+        var sut = new SimpleNoteExtractor();
+        var note = await sut.ExtractAsync(string.Empty);
+
+        await Verify(note);
+    }
+
+    [Fact]
+    public async Task ExtractAsync_ExtractsOxygen_FromValidText()
     {
         var raw = await Resource.FromNamespaceOf(typeof(SimpleNoteExtractorTests))
                                 .WithName("note.txt")
                                 .ReadAsync();
 
         var sut = new SimpleNoteExtractor();
-        var note = sut.Extract(raw);
+        var note = await sut.ExtractAsync(raw);
 
         await Verify(note)
             .DontScrubDateTimes();
     }
 
     [Fact]
-    public async Task Should_Extract_Cpap_From_Valid_Json()
+    public async Task ExtractAsync_ExtractsCpap_FromValidText()
     {
         var raw = await Resource.FromNamespaceOf(typeof(SimpleNoteExtractorTests))
                                 .WithName("note.json")
                                 .ReadAsync();
 
         var sut = new SimpleNoteExtractor();
-        var note = sut.Extract(raw);
+        var note = await sut.ExtractAsync(raw);
 
         await Verify(note)
             .DontScrubDateTimes();

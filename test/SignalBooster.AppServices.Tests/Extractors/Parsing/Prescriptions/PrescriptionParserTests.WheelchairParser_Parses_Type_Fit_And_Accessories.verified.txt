@@ -1,8 +1,0 @@
-﻿{
-  Type: manual,
-  SeatWidthIn: 18,
-  SeatDepthIn: 16,
-  LegRests: elevating,
-  Cushion: gel,
-  Device: Wheelchair
-}

@@ -1,0 +1,12 @@
+﻿{
+  OrderingPhysician: Dr. Michelle Harper,
+  PatientName: Daniel Hayes,
+  PatientDateOfBirth: 1950-03-14,
+  Diagnosis: Osteoarthritis of both knees,
+  Prescription: {
+    device: Wheelchair,
+    Type: manual,
+    LegRests: elevating,
+    Device: Wheelchair
+  }
+}

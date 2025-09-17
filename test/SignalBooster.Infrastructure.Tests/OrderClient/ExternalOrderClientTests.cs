@@ -93,4 +93,40 @@ public class ExternalOrderClientTests
 
         Assert.False(result);
     }
+
+    [Fact]
+    public async Task SendAsync_ReturnsFalse_OnCancellation()
+    {
+        // Arrange
+        var handlerMock = new Mock<HttpMessageHandler>();
+
+        handlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ThrowsAsync(new OperationCanceledException("simulated cancel"));
+
+        var http = new HttpClient(handlerMock.Object);
+
+        var sut = CreateClient(handlerMock);
+
+        var note = new PhysicianNote
+        {
+            PatientName = "Test",
+            PatientDateOfBirth = new DateOnly(2000, 1, 1),
+            Diagnosis = "Unit test",
+            OrderingPhysician = "Dr. Cancel",
+            Prescription = new OxygenPrescription(2, UsageContext.Sleep)
+        };
+
+        // Act
+        var result = await sut.SendAsync(note, new Uri("http://fake/endpoint"));
+
+        // Assert
+        Assert.False(result);
+    }
+
+
 }

@@ -11,7 +11,7 @@ public sealed class FakeLLMClient : ILlmClient
         _responder = responder ?? throw new ArgumentNullException(nameof(responder));
     }
 
-    public Task<string> CompleteJsonAsync(string systemPrompt, string userContent, CancellationToken ct = default)
+    public Task<string> GetJsonAsync(string systemPrompt, string userContent, CancellationToken ct = default)
     {
         return Task.FromResult(_responder(systemPrompt, userContent));
     }

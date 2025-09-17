@@ -6,156 +6,120 @@ using System.Text.Json;
 namespace SignalBooster.AppServices.Extractors.OpenAi;
 
 /// <summary>
-/// INoteExtractor implementation that calls an LLM (via ILLMClient) to extract a PhysicianNote.
-/// - Depends only on the ILLMClient port (no infra references).
+/// INoteExtractor implementation that calls an LLM (via ILlmClient) to extract a PhysicianNote.
+/// - Depends only on the ILlmClient port (no infra references).
 /// - Uses a strict JSON-only prompt and maps returned JSON into domain models.
 /// - Throws with clear context if the LLM returns invalid JSON.
 /// </summary>
 public sealed class OpenAiNoteExtractor : INoteExtractor
 {
-    private readonly ILlmClient _llm;
+    private readonly ILlmClient _llmClient;
 
-    public OpenAiNoteExtractor(ILlmClient llm)
+    public OpenAiNoteExtractor(ILlmClient llmClient)
     {
-        _llm = llm ?? throw new ArgumentNullException(nameof(llm));
+        _llmClient = llmClient ?? throw new ArgumentNullException(nameof(llmClient));
     }
 
-    /// <summary>
-    /// Synchronous INoteExtractor entrypoint. Prefer ExtractAsync for non-blocking calls.
-    /// </summary>
-    public PhysicianNote Extract(string rawNote)
-    {
-        return ExtractAsync(rawNote).GetAwaiter().GetResult();
-    }
-
-    public async Task<PhysicianNote> ExtractAsync(string rawNote, CancellationToken ct = default)
+    public async Task<PhysicianNote> ExtractAsync(string rawNote)
     {
         if (string.IsNullOrWhiteSpace(rawNote))
         {
-            return new PhysicianNote();
+            return EmptyNote();
         }
 
-        // Ask the LLM to return a single JSON object only (no prose/markdown).
-        var json = await _llm.CompleteJsonAsync(SystemPrompt, rawNote, ct).ConfigureAwait(false);
+        var json = await _llmClient.GetJsonAsync(SystemPrompt, rawNote);
+        return ParseNote(json);
+    }
 
-        // Some models occasionally wrap content in code fences; callers of ILLMClient may already strip them,
-        // but we defensively trim here as well.
-        json = StripCodeFences(json);
-
+    private static PhysicianNote ParseNote(string json)
+    {
         try
         {
-            return MapToDomain(json);
+            var clean = StripCodeFences(json);
+
+            using var doc = JsonDocument.Parse(clean);
+            var root = doc.RootElement;
+
+            var note = new PhysicianNote
+            {
+                PatientName = root.GetStringOrNull("patient_name"),
+                PatientDateOfBirth = root.GetDateOnlyOrNull("dob"),
+                Diagnosis = root.GetStringOrNull("diagnosis"),
+                OrderingPhysician = root.GetStringOrNull("ordering_physician"),
+                Prescription = MapPrescription(root.GetProperty("prescription"))
+            };
+
+            return note;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is JsonException || ex is FormatException)
         {
-            // Surface parsing failures with the raw JSON for observability.
-            throw new InvalidOperationException($"Failed to parse LLM JSON into PhysicianNote. JSON: {json}", ex);
+            throw new InvalidOperationException(
+                $"Failed to parse LLM JSON. Payload snippet: {json[..Math.Min(json.Length, 200)]}", ex);
         }
     }
 
-    // -------------------------
-    // Mapping
-    // -------------------------
-
-    private static PhysicianNote MapToDomain(string json)
+    private static IDevicePrescription? MapPrescription(JsonElement root)
     {
-        using var doc = JsonDocument.Parse(json);
-        var root = doc.RootElement;
-
-        var note = new PhysicianNote
+        var device = root.GetStringOrNull("device")?.ToLowerInvariant();
+        return device switch
         {
-            PatientName = root.Prop("patient_name")?.GetString(),
-            PatientDateOfBirth = DateParser.Parse(root.Prop("dob")?.GetString()),
-            Diagnosis = root.Prop("diagnosis")?.GetString(),
-            OrderingPhysician = root.Prop("ordering_physician")?.GetString(),
-            Prescription = MapPrescription(root.Prop("prescription"))
+            "cpap" => MapCpap(root),
+            "bipap" => MapBiPap(root),
+            "oxygen tank" or "oxygen" => MapOxygen(root),
+            "wheelchair" => MapWheelchair(root),
+            _ => null
         };
-
-        return note;
     }
 
-    private static IDevicePrescription? MapPrescription(JsonElement? presEl)
+    private static IDevicePrescription MapCpap(JsonElement root)
     {
-        if (presEl is null || presEl.Value.ValueKind != JsonValueKind.Object)
-        {
-            return null;
-        }
+        var maskType = root.GetEnumOrDefault("mask_type", MaskType.Unknown);
+        var heatedHumidifier = root.GetBoolOrDefault("heated_humidifier");
+        var ahi = root.GetIntOrNull("ahi");
 
-        var p = presEl.Value;
-        var device = p.Prop("device")?.GetString();
-
-        if (string.Equals(device, "Oxygen Tank", StringComparison.OrdinalIgnoreCase))
-        {
-            // Oxygen Tank
-            var lpm = p.Prop("liters")?.GetDecimalOrNull();
-            var usage = p.Prop("usage")?.GetString();
-            return new OxygenPrescription(
-                lpm,
-                usage switch
-                {
-                    "sleep and exertion" => UsageContext.Sleep | UsageContext.Exertion,
-                    "sleep" => UsageContext.Sleep,
-                    "exertion" => UsageContext.Exertion,
-                    _ => UsageContext.None
-                });
-        }
-
-        if (string.Equals(device, "CPAP", StringComparison.OrdinalIgnoreCase))
-        {
-            // CPAP
-            var maskStr = p.Prop("mask_type")?.GetString();
-            var heated = p.Prop("heated_humidifier")?.GetBooleanOrNull() ?? false;
-            var ahi = p.Prop("ahi")?.GetInt32OrNull();
-
-            return new CpapPrescription(
-                maskStr switch
-                {
-                    "full face" => MaskType.FullFace,
-                    "nasal" => MaskType.Nasal,
-                    "nasal pillow" => MaskType.NasalPillow,
-                    _ => MaskType.Unknown
-                },
-                heated,
-                ahi);
-        }
-
-        if (string.Equals(device, "BiPAP", StringComparison.OrdinalIgnoreCase))
-        {
-            // BiPAP
-            var maskStr = p.Prop("mask_type")?.GetString();
-            var heated = p.Prop("heated_humidifier")?.GetBooleanOrNull() ?? false;
-            var ahi = p.Prop("ahi")?.GetInt32OrNull();
-            var ipap = p.Prop("ipap_cm_h2o")?.GetInt32OrNull();
-            var epap = p.Prop("epap_cm_h2o")?.GetInt32OrNull();
-            var backup = p.Prop("backup_rate")?.GetInt32OrNull();
-
-            return new BiPapPrescription(
-                ipap,
-                epap,
-                backup,
-                maskStr is "full face" ? MaskType.FullFace :
-                maskStr is "nasal" ? MaskType.Nasal :
-                maskStr is "nasal pillow" ? MaskType.NasalPillow : MaskType.Unknown,
-                heated,
-                ahi);
-        }
-
-        if (string.Equals(device, "Wheelchair", StringComparison.OrdinalIgnoreCase))
-        {
-            // Wheelchair
-            var type = p.Prop("chair_type")?.GetString();
-            var seatW = p.Prop("seat_width_in")?.GetInt32OrNull();
-            var seatD = p.Prop("seat_depth_in")?.GetInt32OrNull();
-            var legs = p.Prop("leg_rests")?.GetString();
-            var cushion = p.Prop("cushion")?.GetString();
-            var justification = p.Prop("justification")?.GetString();
-
-            return new WheelchairPrescription(type, seatW, seatD, legs, cushion, justification);
-        }
-
-        return null;
+        return new CpapPrescription(maskType, heatedHumidifier, ahi);
     }
 
+    private static IDevicePrescription MapBiPap(JsonElement root)
+    {
+        var ipap = root.GetIntOrNull("ipap_cm_h2o");
+        var epap = root.GetIntOrNull("epap_cm_h2o");
+        var backupRate = root.GetIntOrNull("backup_rate");
+        var maskType = root.GetEnumOrDefault("mask_type", MaskType.Unknown);
+        var heatedHumidifier = root.GetBoolOrDefault("heated_humidifier");
+        var ahi = root.GetIntOrNull("ahi");
+
+        return new BiPapPrescription(ipap, epap, backupRate, maskType, heatedHumidifier, ahi);
+    }
+
+    private static IDevicePrescription MapOxygen(JsonElement root)
+    {
+        var liters = root.GetDecimalOrNull("liters");
+        var usage = root.GetEnumOrDefault("usage", UsageContext.None);
+
+        return new OxygenPrescription(liters, usage);
+    }
+
+    private static IDevicePrescription MapWheelchair(JsonElement root)
+    {
+        var type = root.GetStringOrNull("chair_type");
+        var seatWidth = root.GetIntOrNull("seat_width_in");
+        var seatDepth = root.GetIntOrNull("seat_depth_in");
+        var legRests = root.GetStringOrNull("leg_rests");
+        var cushion = root.GetStringOrNull("cushion");
+        var justification = root.GetStringOrNull("justification");
+
+        return new WheelchairPrescription(type, seatWidth, seatDepth, legRests, cushion, justification);
+    }
+
+    private static PhysicianNote EmptyNote() => new()
+    {
+        PatientName = null,
+        PatientDateOfBirth = null,
+        Diagnosis = null,
+        OrderingPhysician = null,
+        Prescription = null
+    };
     // -------------------------
     // Prompt & helpers
     // -------------------------
@@ -206,59 +170,17 @@ public sealed class OpenAiNoteExtractor : INoteExtractor
 
         s = s.Trim();
 
-        if (s.StartsWith("```", StringComparison.Ordinal))
+        // Strip ```json ... ``` fences if present
+        if (s.StartsWith("```"))
         {
-            var firstNl = s.IndexOf('\n');
-            if (firstNl >= 0)
+            var firstNewline = s.IndexOf('\n');
+            var lastFence = s.LastIndexOf("```", StringComparison.Ordinal);
+            if (firstNewline >= 0 && lastFence > firstNewline)
             {
-                s = s[(firstNl + 1)..];
+                s = s.Substring(firstNewline, lastFence - firstNewline).Trim();
             }
-            if (s.EndsWith("```", StringComparison.Ordinal))
-            {
-                s = s[..^3];
-            }
-            s = s.Trim();
         }
 
         return s;
-    }
-}
-
-// Small JsonElement helpers to keep mapping tidy and null-safe.
-internal static class JsonElExt
-{
-    public static JsonElement? Prop(this JsonElement el, string name)
-    {
-        return el.TryGetProperty(name, out var v) ? v : (JsonElement?)null;
-    }
-
-    public static int? GetInt32OrNull(this JsonElement el)
-    {
-        if (el.ValueKind == JsonValueKind.Number && el.TryGetInt32(out var n))
-        {
-            return n;
-        }
-
-        return null;
-    }
-
-    public static decimal? GetDecimalOrNull(this JsonElement el)
-    {
-        if (el.ValueKind == JsonValueKind.Number && el.TryGetDecimal(out var n))
-        {
-            return n;
-        }
-
-        return null;
-    }
-
-    public static bool? GetBooleanOrNull(this JsonElement el)
-    {
-        if (el.ValueKind == JsonValueKind.True || el.ValueKind == JsonValueKind.False)
-        {
-            return el.GetBoolean();
-        }
-
-        return null;
     }
 }

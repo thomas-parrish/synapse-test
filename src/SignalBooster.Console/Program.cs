@@ -8,7 +8,7 @@ using Polly.Extensions.Http;
 using SignalBooster.AppServices.Extractors;
 using SignalBooster.AppServices.Extractors.OpenAi;
 using SignalBooster.AppServices.Extractors.Simple;
-using SignalBooster.Infrastructure.OpenAiClient;
+using SignalBooster.Infrastructure.OpenAi;
 using SignalBooster.Infrastructure.OrderClient;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -95,7 +95,7 @@ if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
 var raw = await File.ReadAllTextAsync(path);
 
 // --- 5. Extract domain object ---
-var note = extractor.Extract(raw);
+var note = await extractor.ExtractAsync(raw);
 
 // --- 6. Print JSON representation of domain object ---
 Console.WriteLine("Extracted domain model:");

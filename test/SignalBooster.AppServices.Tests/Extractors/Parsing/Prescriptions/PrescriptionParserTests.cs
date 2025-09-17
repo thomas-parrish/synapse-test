@@ -26,7 +26,7 @@ public sealed class PrescriptionParserTests
     }
 
     [Fact]
-    public async Task OxygenParser_Parses_Flow_And_Usage()
+    public async Task OxygenParser_ParsesFlowAndUsage_WhenIncluded()
     {
         var raw = """
         Patient Name: Harold Finch
@@ -47,7 +47,7 @@ public sealed class PrescriptionParserTests
     }
 
     [Fact]
-    public async Task CpapParser_Parses_Mask_Humidifier_And_Ahi()
+    public async Task CpapParser_ParsesMaskHumidifierAndAhi_WhenIncluded()
     {
         var raw = """
         Patient Name: Lisa Turner
@@ -69,7 +69,7 @@ public sealed class PrescriptionParserTests
     }
 
     [Fact]
-    public async Task BiPapParser_Parses_Ipap_Epap_Backup_Mask_Ahi()
+    public async Task BiPapParser_ParsesValues_WhenIncluded()
     {
         var raw = """
         Patient Name: John Doe
@@ -90,28 +90,7 @@ public sealed class PrescriptionParserTests
     }
 
     [Fact]
-    public async Task WheelchairParser_Parses_Type_Fit_And_Accessories()
-    {
-        var raw = """
-        Patient Name: Jane Roe
-        DOB: 01/22/1960
-        Diagnosis: CVA with left hemiparesis
-        Prescription: Manual wheelchair, seat width 18", seat depth 16", with elevating leg rests and gel cushion.
-        Ordering Physician: Dr. Smith
-        """;
-
-        var (fields, text, hint) = Prep(raw);
-
-        var sut = new WheelchairParser();
-        Assert.True(sut.Matches(hint));
-
-        var result = sut.Parse(fields, text, hint);
-
-        await Verify(result);
-    }
-
-    [Fact]
-    public void Parsers_Do_Not_Match_Irrelevant_Hint()
+    public void Parsers_DoNotMatch_WhenHintInvalid()
     {
         var raw = "Recommendation: Nebulizer therapy as needed.";
         var (_, _, hint) = Prep(raw);

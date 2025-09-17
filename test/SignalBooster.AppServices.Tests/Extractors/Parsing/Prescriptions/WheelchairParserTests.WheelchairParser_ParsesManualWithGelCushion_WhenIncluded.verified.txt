@@ -1,0 +1,12 @@
+﻿{
+  OrderingPhysician: Dr. Sarah Lopez,
+  PatientName: Peter Johnson,
+  PatientDateOfBirth: 1985-02-18,
+  Diagnosis: Spinal cord injury with risk of pressure ulcers,
+  Prescription: {
+    device: Wheelchair,
+    Type: manual,
+    Cushion: gel,
+    Device: Wheelchair
+  }
+}

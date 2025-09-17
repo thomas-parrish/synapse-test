@@ -1,0 +1,11 @@
+﻿{
+  OrderingPhysician: Dr. Olivia King,
+  PatientName: Henry Clark,
+  PatientDateOfBirth: 1958-01-11,
+  Diagnosis: Severe scoliosis,
+  Prescription: {
+    device: Wheelchair,
+    Cushion: air,
+    Device: Wheelchair
+  }
+}

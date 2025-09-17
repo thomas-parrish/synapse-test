@@ -4,5 +4,5 @@ namespace SignalBooster.AppServices.Extractors;
 
 public interface INoteExtractor
 {
-    public PhysicianNote Extract(string text);
+    public Task<PhysicianNote> ExtractAsync(string text);
 }

@@ -5,7 +5,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
-namespace SignalBooster.Infrastructure.OpenAiClient;
+namespace SignalBooster.Infrastructure.OpenAi;
 
 public sealed class OpenAiClient : ILlmClient
 {
@@ -21,10 +21,14 @@ public sealed class OpenAiClient : ILlmClient
     {
         _http = http ?? throw new ArgumentNullException(nameof(http));
         _openAiConfiguration = options.Value;
+        if(string.IsNullOrWhiteSpace(_openAiConfiguration?.ApiKey))
+        {
+            throw new ArgumentException("ApiKey is required", nameof(options.Value));
+        }
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<string> CompleteJsonAsync(string systemPrompt, string userContent, CancellationToken ct = default)
+    public async Task<string> GetJsonAsync(string systemPrompt, string userContent, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(systemPrompt))
         {

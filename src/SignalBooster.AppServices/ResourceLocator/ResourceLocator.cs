@@ -4,8 +4,9 @@ namespace SignalBooster.AppServices.ResourceLocator;
 
 public static class Resource
 {
-    public static ResourceLocator FromNamespaceOf(Type type) =>
-        new ResourceLocator(type.Assembly, type.Namespace ?? string.Empty);
+    public static ResourceLocator FromNamespaceOf(Type type) => type == null
+        ? throw new ArgumentNullException(nameof(type))
+        : new ResourceLocator(type.Assembly, type.Namespace ?? string.Empty);
 
     public sealed class ResourceLocator
     {
@@ -21,7 +22,11 @@ public static class Resource
 
         public ResourceLocator WithName(string fileName)
         {
-            _fileName = fileName ?? throw new ArgumentNullException(nameof(fileName));
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                throw new ArgumentException(nameof(fileName));
+            }
+            _fileName = fileName;
             return this;
         }
 
