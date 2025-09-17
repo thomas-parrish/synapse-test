@@ -1,0 +1,14 @@
+﻿{
+  OrderingPhysician: Dr. Karen Blake,
+  PatientName: Michael Andrews,
+  PatientDateOfBirth: Date_1,
+  Diagnosis: Multiple sclerosis,
+  Prescription: {
+    Type: manual,
+    SeatWidthIn: 18,
+    SeatDepthIn: 16,
+    LegRests: elevating,
+    Cushion: gel,
+    Device: Wheelchair
+  }
+}

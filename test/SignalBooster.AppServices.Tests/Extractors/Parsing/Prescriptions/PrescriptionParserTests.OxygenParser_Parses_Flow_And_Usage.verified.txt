@@ -1,0 +1,5 @@
+﻿{
+  FlowLitersPerMinute: 2.0,
+  Usage: Sleep, Exertion,
+  Device: OxygenTank
+}

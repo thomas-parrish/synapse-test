@@ -1,0 +1,5 @@
+Patient Name: Michael Andrews
+DOB: 07/15/1975
+Diagnosis: Multiple sclerosis with lower extremity weakness
+Prescription: Manual wheelchair, seat width 18", seat depth 16", with elevating leg rests and gel cushion for pressure relief.
+Ordering Physician: Dr. Karen Blake

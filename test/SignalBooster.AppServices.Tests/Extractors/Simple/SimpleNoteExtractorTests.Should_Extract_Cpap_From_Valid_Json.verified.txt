@@ -1,0 +1,12 @@
+﻿{
+  OrderingPhysician: Dr. Foreman,
+  PatientName: Lisa Turner,
+  PatientDateOfBirth: 1984-09-23,
+  Diagnosis: Severe sleep apnea,
+  Prescription: {
+    MaskType: FullFace,
+    HeatedHumidifier: true,
+    Ahi: 28,
+    Device: Cpap
+  }
+}

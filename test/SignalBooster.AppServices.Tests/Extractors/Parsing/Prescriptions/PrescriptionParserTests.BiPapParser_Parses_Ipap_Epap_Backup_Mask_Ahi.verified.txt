@@ -1,0 +1,9 @@
+﻿{
+  IpapCmH2O: 16,
+  EpapCmH2O: 8,
+  BackupRateBpm: 12,
+  MaskType: Nasal,
+  HeatedHumidifier: true,
+  Ahi: 22,
+  Device: BiPap
+}

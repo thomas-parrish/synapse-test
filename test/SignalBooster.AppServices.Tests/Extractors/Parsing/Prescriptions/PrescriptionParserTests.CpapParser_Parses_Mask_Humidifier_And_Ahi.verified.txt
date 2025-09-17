@@ -1,0 +1,6 @@
+﻿{
+  MaskType: FullFace,
+  HeatedHumidifier: true,
+  Ahi: 28,
+  Device: Cpap
+}

@@ -1,0 +1,11 @@
+﻿{
+  OrderingPhysician: Dr. Cuddy,
+  PatientName: Harold Finch,
+  PatientDateOfBirth: 1952-04-12,
+  Diagnosis: COPD,
+  Prescription: {
+    FlowLitersPerMinute: 2.0,
+    Usage: Sleep, Exertion,
+    Device: OxygenTank
+  }
+}

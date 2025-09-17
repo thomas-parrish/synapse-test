@@ -1,0 +1,7 @@
+﻿{
+  OrderingPhysician: null,
+  PatientName: Test,
+  PatientDateOfBirth: 2000-01-01,
+  Diagnosis: null,
+  Prescription: null
+}
