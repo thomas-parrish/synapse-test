@@ -31,6 +31,7 @@ No GitHub Copilot, Cursor, or Cody were used in this project.
 ## 📐 Assumptions & Limitations
 
 - Physician notes can be **plain text** or **JSON-wrapped** in the form `{ "data": "..." }`.
+- No specification for the External Endpoint API was given, so I made assumptions based on `expected_output1.json` as well as the code in `SignalBooster_Original.cs`._
 - Supported device types:
   - CPAP
   - BiPAP
