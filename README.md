@@ -1,0 +1,124 @@
+﻿# SignalBooster Assignment
+
+This project demonstrates a refactoring of the original "Signal Booster" utility into a maintainable, testable, and production-ready .NET application using Domain-Driven Design (DDD) with an onion architecture.
+
+---
+
+## 🛠 Tools Used
+
+- **IDE:** Visual Studio 2022 (you can also use VS Code or Rider)
+- **Framework:** .NET 8
+- **Packages:**
+  - `Microsoft.Extensions.*` (Configuration, Logging, Options, Http)
+  - `Newtonsoft.Json` (for legacy formatter)
+  - `Polly` + `Microsoft.Extensions.Http.Polly` (for resilient HTTP calls)
+  - `xUnit` + `Verify.Xunit` (for testing and snapshot verification)
+- **Optional AI:** OpenAI API (via `ILlmClient` + `OpenAiClient`)
+
+---
+
+## 🤖 AI Development Tools
+
+Yes — ChatGPT was used as an AI pair-programmer during development for brainstorming, refactoring suggestions, test scaffolding, and documentation.  
+No GitHub Copilot, Cursor, or Cody were used in this project.
+
+---
+
+## 📐 Assumptions & Limitations
+
+- Physician notes can be **plain text** or **JSON-wrapped** in the form `{ "data": "..." }`.
+- Supported device types:
+  - CPAP
+  - BiPAP
+  - Oxygen Tank
+  - Wheelchair
+- Additional DME devices could be added by extending the `IPrescriptionParser` interface (and/or updating the OpenAi prompt.)
+- AHI qualifier rules are simplified from American Academy of Sleep Medicine (AASM) cutoffs and may not reflect all insurance/billing guidelines.
+- For structured extraction via OpenAI, the system prompt enforces JSON-only responses; however, malformed LLM output may still require future hardening.
+- No database is included — the app is stateless and reads notes from files.
+
+---
+
+## 🚀 Running the Project
+
+### 1. Restore and build
+
+```bash
+dotnet restore
+dotnet build
+```
+
+### 2. Configure User Secrets
+
+Set your OpenAI API key using .NET user secrets:
+
+```bash
+dotnet user-secrets set "OpenAI:ApiKey" "sk-<your key here>"
+```
+
+Example secret format:
+
+```json
+{
+  "OpenAI": {
+    "ApiKey": "sk-..."
+  }
+}
+```
+
+### 3. Adjust extraction mode
+
+In `appsettings.json`, set:
+
+```json
+{
+  "Extraction": {
+    "UseOpenAI": true
+  }
+}
+```
+
+- `true` → use `OpenAiNoteExtractor`  
+- `false` → use `SimpleNoteExtractor`
+
+### 4. Run the console app
+
+```bash
+dotnet run --project SignalBooster.Console
+```
+
+The app will prompt you for a filename.
+
+- If you type a fully-qualified path (`C:\files\note.txt`), it loads directly.
+- If you type a relative file (`oxygen.txt`), it loads from the application’s base directory.
+
+### 5. Sample files
+
+The following are included and copied to the output directory:
+
+- `cpap.json`
+- `oxygen.txt`
+- `wheelchair.txt`
+
+Example run:
+
+```
+Enter path to physician note file:
+oxygen.txt
+```
+
+The app will:
+
+1. Extract a `PhysicianNote` domain object
+2. Print its JSON representation
+3. Send a legacy-formatted request to the external API endpoint
+
+---
+
+## 🔮 Future Improvements
+
+- Add additional DME types (e.g., nebulizers, hospital beds).
+- Improve OpenAI error handling (e.g., retry on schema mismatch).
+- Add richer observability (structured logging, correlation IDs).
+- Build a web front-end or API wrapper instead of console I/O.
+- Allow configuration of multiple LLM providers (OpenAI, Azure OpenAI).
