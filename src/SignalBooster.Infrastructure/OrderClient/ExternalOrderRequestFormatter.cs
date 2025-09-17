@@ -52,15 +52,32 @@ public sealed class ExternalOrderRequestFormatter : IOrderRequestFormatter
         switch (note.Prescription)
         {
             case OxygenPrescription oxy:
-                AddOxygenFields(dict, oxy);
-                break;
+                {
+                    AddOxygenFields(dict, oxy);
+                    break;
+                }
             case CpapPrescription cpap:
-                AddCpapFields(dict, cpap, note.PatientDateOfBirth);
-                break;
+                {
+                    AddCpapFields(dict, cpap, note.PatientDateOfBirth);
+                    break;
+                }
+            case BiPapPrescription bipap:
+                {
+                    AddBiPapFields(dict, bipap, note.PatientDateOfBirth);
+                    break;
+                }
+            case WheelchairPrescription wc:
+                {
+                    AddWheelchairFields(dict, wc);
+                    break;
+                }
             default:
-                dict["device"] = "Unknown";
-                break;
+                {
+                    dict["device"] = "Unknown";
+                    break;
+                }
         }
+
         return dict;
     }
 
@@ -99,6 +116,40 @@ public sealed class ExternalOrderRequestFormatter : IOrderRequestFormatter
             : null;
 
         dict["qualifier"] = BuildAhiQualifier(cpap.Ahi, dob);
+    }
+
+    private static void AddBiPapFields(Dictionary<string, object?> dict, BiPapPrescription bipap, DateOnly? dob)
+    {
+        dict["device"] = "BiPAP";
+
+        dict["mask_type"] = bipap.MaskType switch
+        {
+            MaskType.FullFace => "full face",
+            MaskType.Nasal => "nasal",
+            MaskType.NasalPillow => "nasal pillow",
+            _ => null
+        };
+
+        dict["add_ons"] = bipap.HeatedHumidifier ? new[] { "heated humidifier" } : null;
+
+        // Keep the legacy "qualifier" concept aligned with CPAP (AHI-based)
+        dict["qualifier"] = BuildAhiQualifier(bipap.Ahi, dob);
+
+        // Include BiPAP pressures if present (legacy didn’t have these; safe to add)
+        dict["ipap_cm_h2o"] = bipap.IpapCmH2O;
+        dict["epap_cm_h2o"] = bipap.EpapCmH2O;
+        dict["backup_rate"] = bipap.BackupRateBpm;
+    }
+
+    private static void AddWheelchairFields(Dictionary<string, object?> dict, WheelchairPrescription wc)
+    {
+        dict["device"] = "Wheelchair";
+        dict["chair_type"] = wc.Type;                 // "manual" | "power" | "transport"
+        dict["seat_width_in"] = wc.SeatWidthIn;       // int?
+        dict["seat_depth_in"] = wc.SeatDepthIn;       // int?
+        dict["leg_rests"] = wc.LegRests;              // "elevating" | "swing-away" | ...
+        dict["cushion"] = wc.Cushion;                 // "gel" | "foam" | "air" | "roho"
+        // No "justification" in legacy payload; omit unless API requires it
     }
 
     /// <summary>

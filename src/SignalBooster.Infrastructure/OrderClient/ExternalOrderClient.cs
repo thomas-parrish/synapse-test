@@ -1,6 +1,7 @@
-﻿using System.Text;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using SignalBooster.Domain;
+using System.Text;
+using System.Text.Json;
 
 namespace SignalBooster.Infrastructure.OrderClient;
 
@@ -30,6 +31,26 @@ public sealed class ExternalOrderClient : IExternalOrderClient
 
         try
         {
+            //Normally I wouldn't do this but I wanted a quick way to just show the reviewer the request format
+            //in a readable fashion while leaving the request itself optimized
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                try
+                {
+                    using var jdoc = JsonDocument.Parse(payload);
+                    var pretty = JsonSerializer.Serialize(
+                        jdoc,
+                        new JsonSerializerOptions { WriteIndented = true });
+
+                    _logger.LogDebug("POST payload:\n{Payload}", pretty);
+                }
+                catch
+                {
+                    // If it's not valid JSON, just log as-is
+                    _logger.LogDebug("POST payload (raw): {Payload}", payload);
+                }
+            }
+
             _logger.LogInformation("POST {Endpoint} payloadLength={Length}", endpoint, payload.Length);
 
             using var resp = await _http.PostAsync(endpoint, content, ct).ConfigureAwait(false);

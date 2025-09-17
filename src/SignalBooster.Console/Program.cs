@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
@@ -22,7 +23,17 @@ var config = new ConfigurationBuilder()
 // --- 2. Setup DI ---
 var services = new ServiceCollection();
 
-services.AddLogging(builder => builder.AddConsole());
+services.AddLogging(b =>
+{
+    b.ClearProviders();
+    b.AddConfiguration(config.GetSection("Logging")); // binds filters from appsettings
+    b.AddSimpleConsole(o => 
+        { 
+            o.SingleLine = false;
+            o.TimestampFormat = "HH:mm:ss ";
+            o.ColorBehavior = LoggerColorBehavior.Enabled;
+        });
+});
 
 services.AddOptions<OpenAiConfiguration>()
         .Bind(config.GetSection("OpenAi"))
@@ -107,8 +118,8 @@ Console.WriteLine($"Sending order to {endpoint}...");
 var success = await externalClient.SendAsync(note, endpoint);
 
 Console.WriteLine(success
-    ? "✅ Request succeeded."
-    : "❌ Request failed. Check logs for details.");
+    ? "Request succeeded."
+    : "Request failed. Check logs for details.");
 
 
 static string ResolvePath(string? input)

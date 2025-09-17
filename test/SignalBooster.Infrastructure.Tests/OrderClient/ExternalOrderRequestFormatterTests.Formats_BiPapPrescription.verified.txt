@@ -1,0 +1,15 @@
+﻿{
+  diagnosis: Severe OSA,
+  ordering_provider: Dr. House,
+  patient_name: John Doe,
+  dob: 01/02/1970,
+  device: BiPAP,
+  mask_type: nasal,
+  add_ons: [
+    heated humidifier
+  ],
+  qualifier: AHI > 15 (moderate, adult),
+  ipap_cm_h2o: 16,
+  epap_cm_h2o: 8,
+  backup_rate: 12
+}

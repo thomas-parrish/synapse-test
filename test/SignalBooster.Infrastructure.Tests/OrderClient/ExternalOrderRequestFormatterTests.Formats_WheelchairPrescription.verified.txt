@@ -1,0 +1,12 @@
+﻿{
+  diagnosis: Multiple sclerosis with lower extremity weakness,
+  ordering_provider: Dr. Karen Blake,
+  patient_name: Michael Andrews,
+  dob: 07/15/1975,
+  device: Wheelchair,
+  chair_type: manual,
+  seat_width_in: 18,
+  seat_depth_in: 16,
+  leg_rests: elevating,
+  cushion: gel
+}

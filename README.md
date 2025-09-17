@@ -4,6 +4,10 @@ This project demonstrates a refactoring of the original "Signal Booster" utility
 
 ---
 
+## Requirements
+- .NET 8 SDK
+- OpenAI API key (only if using OpenAiNoteExtractor)
+
 ## 🛠 Tools Used
 
 - **IDE:** Visual Studio 2022 (you can also use VS Code or Rider)
@@ -114,11 +118,67 @@ The app will:
 3. Send a formatted request to the external API endpoint
 
 ---
+These outputs show the raw PhysicianNote domain object printed by the console app, not the external request formatter.
+
+- wheelchair.txt
+```json
+{
+  "OrderingPhysician": "Dr. Karen Blake",
+  "PatientName": "Michael Andrews",
+  "PatientDateOfBirth": "1975-07-15",
+  "Diagnosis": "Multiple sclerosis with lower extremity weakness",
+  "Prescription": {
+    "device": "Wheelchair",
+    "Type": "manual",
+    "SeatWidthIn": 18,
+    "SeatDepthIn": 16,
+    "LegRests": "elevating",
+    "Cushion": "gel",
+    "Justification": null,
+    "Device": 4
+  }
+}
+```
+
+- oxygen.txt
+```json
+{
+  "OrderingPhysician": "Dr. Cuddy",
+  "PatientName": "Harold Finch",
+  "PatientDateOfBirth": "1952-04-12",
+  "Diagnosis": "COPD",
+  "Prescription": {
+    "device": "Oxygen Tank",
+    "FlowLitersPerMinute": 2,
+    "Usage": 3,
+    "Device": 3
+  }
+}
+```
+
+- cpap.json
+```json
+{
+  "OrderingPhysician": "Dr. Foreman",
+  "PatientName": "Lisa Turner",
+  "PatientDateOfBirth": "1984-09-23",
+  "Diagnosis": "Severe sleep apnea",
+  "Prescription": {
+    "device": "CPAP",
+    "MaskType": 1,
+    "HeatedHumidifier": true,
+    "Ahi": 28,
+    "Device": 1
+  }
+}
+```
+
+---
 
 ## 🔮 Future Improvements
 
-- Add additional DME types (e.g., nebulizers, hospital beds).
-- Improve OpenAI error handling (e.g., retry on schema mismatch).
-- Add richer observability (structured logging, correlation IDs).
+- Add additional DME types (e.g., nebulizers, hospital beds.)
+- Improve OpenAI error handling (e.g., retry on schema mismatch.)
+- Add richer observability (OpenTelemetry, etc.)
 - Build a web front-end or API wrapper instead of console I/O.
-- Allow configuration of multiple LLM providers (OpenAI, Azure OpenAI).
+- Allow configuration of multiple LLM providers (OpenAI, Azure OpenAI.)

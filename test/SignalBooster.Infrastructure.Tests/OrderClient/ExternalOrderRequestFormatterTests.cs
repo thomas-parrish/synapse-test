@@ -48,4 +48,52 @@ public class ExternalOrderRequestFormatterTests
         await VerifyJson(json)
             .DontScrubDateTimes();
     }
+
+    [Fact]
+    public async Task Formats_BiPapPrescription()
+    {
+        var note = new PhysicianNote
+        {
+            PatientName = "John Doe",
+            PatientDateOfBirth = new DateOnly(1970, 1, 2),
+            Diagnosis = "Severe OSA",
+            OrderingPhysician = "Dr. House",
+            Prescription = new BiPapPrescription(
+                IpapCmH2O: 16,
+                EpapCmH2O: 8,
+                BackupRateBpm: 12,
+                MaskType: MaskType.Nasal,
+                HeatedHumidifier: true,
+                Ahi: 22)
+        };
+
+        var json = _sut.Format(note);
+
+        await VerifyJson(json)
+            .DontScrubDateTimes();
+    }
+
+    [Fact]
+    public async Task Formats_WheelchairPrescription()
+    {
+        var note = new PhysicianNote
+        {
+            PatientName = "Michael Andrews",
+            PatientDateOfBirth = new DateOnly(1975, 7, 15),
+            Diagnosis = "Multiple sclerosis with lower extremity weakness",
+            OrderingPhysician = "Dr. Karen Blake",
+            Prescription = new WheelchairPrescription(
+                Type: "manual",
+                SeatWidthIn: 18,
+                SeatDepthIn: 16,
+                LegRests: "elevating",
+                Cushion: "gel",
+                Justification: null)
+        };
+
+        var json = _sut.Format(note);
+
+        await VerifyJson(json)
+            .DontScrubDateTimes();
+    }
 }
