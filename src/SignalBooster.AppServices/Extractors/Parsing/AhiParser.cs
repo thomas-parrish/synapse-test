@@ -4,6 +4,8 @@ namespace SignalBooster.AppServices.Extractors.Parsing;
 
 internal static class AhiParser
 {
+    private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(500);
+
     /// <summary>
     /// Extracts AHI as an integer, if present.
     /// Priority:
@@ -16,14 +18,14 @@ internal static class AhiParser
     {
         if (!string.IsNullOrWhiteSpace(ahiField))
         {
-            var d = Regex.Match(ahiField, @"\d+");
+            var d = Regex.Match(ahiField, @"\d+", RegexOptions.None, RegexTimeout);
             if (d.Success && int.TryParse(d.Value, out var n))
             {
                 return n;
             }
         }
 
-        var m = Regex.Match(raw, @"\bAHI\s*[:>]\s*(\d+)\b", RegexOptions.IgnoreCase);
+        var m = Regex.Match(raw, @"\bAHI\s*[:>]\s*(\d+)\b", RegexOptions.IgnoreCase, RegexTimeout);
         if (m.Success && int.TryParse(m.Groups[1].Value, out var n2))
         {
             return n2;

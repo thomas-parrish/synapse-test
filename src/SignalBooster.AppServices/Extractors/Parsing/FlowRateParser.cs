@@ -12,6 +12,7 @@ namespace SignalBooster.AppServices.Extractors.Parsing;
 /// </remarks>
 internal static class FlowRateParser
 {
+    private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(500);
     /// <summary>
     /// Attempts to parse an oxygen flow rate value from raw physician note text.
     /// </summary>
@@ -39,7 +40,8 @@ internal static class FlowRateParser
         var m = Regex.Match(
             raw,
             @"\b(\d+(?:\.\d+)?)\s*L\s*(?:/|per)\s*min\b",
-            RegexOptions.IgnoreCase);
+            RegexOptions.IgnoreCase,
+            RegexTimeout);
 
         if (m.Success)
         {
@@ -53,7 +55,8 @@ internal static class FlowRateParser
         var m2 = Regex.Match(
             raw,
             @"\b(\d+(?:\.\d+)?)\s*L\b",
-            RegexOptions.IgnoreCase);
+            RegexOptions.IgnoreCase,
+            RegexTimeout);
 
         if (m2.Success)
         {
@@ -67,7 +70,8 @@ internal static class FlowRateParser
         var m3 = Regex.Match(
             raw,
             @"\b(\d+(?:\.\d+)?)\s*LPM\b",
-            RegexOptions.IgnoreCase);
+            RegexOptions.IgnoreCase,
+            RegexTimeout);
 
         if (m3.Success)
         {

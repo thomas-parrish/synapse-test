@@ -10,6 +10,7 @@ namespace SignalBooster.AppServices.Extractors.OpenAi;
 /// </summary>
 internal static class JsonElementExtensions
 {
+    private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(500);
     /// <summary>
     /// Gets the string value of the specified property, or <c>null</c> if it does not exist
     /// or is not a string.
@@ -112,13 +113,11 @@ internal static class JsonElementExtensions
     /// </remarks>
     public static DateOnly? GetDateOnlyOrNull(this JsonElement element, string propertyName)
     {
-        if (element.TryGetProperty(propertyName, out var prop))
+        if (element.TryGetProperty(propertyName, out var prop) 
+            && prop.ValueKind == JsonValueKind.String 
+            && DateOnly.TryParse(prop.GetString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out var dob))
         {
-            if (prop.ValueKind == JsonValueKind.String &&
-                DateOnly.TryParse(prop.GetString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out var dob))
-            {
-                return dob;
-            }
+            return dob;
         }
 
         return null;
@@ -185,21 +184,21 @@ internal static class JsonElementExtensions
         {
             // For flags: normalize connectors to comma and strip extra spaces
             // "sleep and exertion" | "sleep/exertion" | "sleep & exertion" -> "sleep,exertion"
-            s = Regex.Replace(s, @"\s*(and|&|/)\s*", ",", RegexOptions.IgnoreCase);
+            s = Regex.Replace(s, @"\s*(and|&|/)\s*", ",", RegexOptions.IgnoreCase, RegexTimeout);
             // Collapse whitespace around commas
-            s = Regex.Replace(s, @"\s*,\s*", ",");
+            s = Regex.Replace(s, @"\s*,\s*", ",", RegexOptions.IgnoreCase, RegexTimeout);
             // For each token, remove hyphens/underscores/spaces inside the token
             var parts = s.Split(',', StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < parts.Length; i++)
             {
-                parts[i] = Regex.Replace(parts[i], @"[\s_\-]+", "");
+                parts[i] = Regex.Replace(parts[i], @"[\s_\-]+", "", RegexOptions.None, RegexTimeout);
             }
             s = string.Join(',', parts);
         }
         else
         {
             // Simple enums: remove spaces, underscores, hyphens
-            s = Regex.Replace(s, @"[\s_\-]+", "");
+            s = Regex.Replace(s, @"[\s_\-]+", "", RegexOptions.IgnoreCase, RegexTimeout);
         }
 
         return s;

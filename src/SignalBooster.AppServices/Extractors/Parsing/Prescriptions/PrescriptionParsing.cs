@@ -5,10 +5,12 @@ namespace SignalBooster.AppServices.Extractors.Parsing.Prescriptions;
 
 internal static class PrescriptionParsing
 {
+    private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(500);
+
     /// <summary>Return first capture group if pattern matches; else null.</summary>
     public static string? MatchGroup(string raw, string pattern)
     {
-        var m = Regex.Match(raw, pattern, RegexOptions.IgnoreCase);
+        var m = Regex.Match(raw, pattern, RegexOptions.IgnoreCase, RegexTimeout);
         if (m.Success)
         {
             return m.Groups[1].Value.Trim();
@@ -20,7 +22,7 @@ internal static class PrescriptionParsing
     /// <summary>Return first int capture group if pattern matches; else null.</summary>
     public static int? ParseFirstInt(string raw, string pattern)
     {
-        var m = Regex.Match(raw, pattern, RegexOptions.IgnoreCase);
+        var m = Regex.Match(raw, pattern, RegexOptions.IgnoreCase, RegexTimeout);
         if (m.Success && int.TryParse(m.Groups[1].Value, out var n))
         {
             return n;

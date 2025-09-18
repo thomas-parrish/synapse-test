@@ -33,17 +33,17 @@ public sealed class OpenAiNoteExtractor : INoteExtractor
 
     /// <inheritdoc />
     /// <remarks>
-    /// If <paramref name="rawNote"/> is blank, an empty <see cref="PhysicianNote"/> is returned.
+    /// If <paramref name="text"/> is blank, an empty <see cref="PhysicianNote"/> is returned.
     /// Otherwise, the note is sent to the LLM using a strict system prompt and parsed into a domain model.
     /// </remarks>
-    public async Task<PhysicianNote> ExtractAsync(string rawNote)
+    public async Task<PhysicianNote> ExtractAsync(string text)
     {
-        if (string.IsNullOrWhiteSpace(rawNote))
+        if (string.IsNullOrWhiteSpace(text))
         {
             return EmptyNote();
         }
 
-        var json = await _llmClient.GetJsonAsync(SystemPrompt, rawNote);
+        var json = await _llmClient.GetJsonAsync(SystemPrompt, text);
         return ParseNote(json);
     }
 

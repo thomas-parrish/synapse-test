@@ -134,7 +134,8 @@ static string ResolvePath(string? input)
     // Unix-style absolute path (/home/..., /usr/...)
     var unixPattern = @"^/";
 
-    if (Regex.IsMatch(input, windowsPattern) || Regex.IsMatch(input, unixPattern))
+    if (Regex.IsMatch(input, windowsPattern, RegexOptions.None, TimeSpan.FromMilliseconds(100)) 
+        || Regex.IsMatch(input, unixPattern, RegexOptions.None, TimeSpan.FromMilliseconds(100)))
     {
         // Fully-qualified already
         return input;

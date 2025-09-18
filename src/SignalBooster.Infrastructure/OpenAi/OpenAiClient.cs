@@ -13,17 +13,13 @@ public sealed class OpenAiClient : ILlmClient
     private readonly OpenAiConfiguration _openAiConfiguration;
     private readonly ILogger<OpenAiClient> _logger;
 
-    private readonly string _apiKey;
-    private readonly string _model;
-    private readonly string _endpoint; // default OpenAI public endpoint
-
     public OpenAiClient(HttpClient http, IOptions<OpenAiConfiguration> options, ILogger<OpenAiClient> logger)
     {
         _http = http ?? throw new ArgumentNullException(nameof(http));
         _openAiConfiguration = options.Value;
         if(string.IsNullOrWhiteSpace(_openAiConfiguration?.ApiKey))
         {
-            throw new ArgumentException("ApiKey is required", nameof(options.Value));
+            throw new ArgumentException("ApiKey is required", nameof(options));
         }
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }

@@ -13,6 +13,8 @@ namespace SignalBooster.AppServices.Extractors.Parsing.Prescriptions;
 /// </remarks>
 internal sealed class WheelchairParser : IPrescriptionParser
 {
+    private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(500);
+
     /// <summary>
     /// Determines whether the provided hint text suggests a wheelchair prescription.
     /// </summary>
@@ -82,7 +84,8 @@ internal sealed class WheelchairParser : IPrescriptionParser
         var m = Regex.Match(
             text,
             @"\b(manual|power|transport)\s+(?:wheel\s*chair|chair|wheelchair)\b",
-            RegexOptions.IgnoreCase);
+            RegexOptions.IgnoreCase,
+            RegexTimeout);
 
         if (m.Success)
         {
@@ -100,28 +103,28 @@ internal sealed class WheelchairParser : IPrescriptionParser
     {
         // Match specific leg-rest terms only (avoid grabbing “and gel cushion”)
         // Supports: "elevating leg rests", "swing-away leg rests", "fixed leg rests", "articulating leg rests"
-        if (Regex.IsMatch(text, @"\belevating\s+leg\s+rests?\b", RegexOptions.IgnoreCase))
+        if (Regex.IsMatch(text, @"\belevating\s+leg\s+rests?\b", RegexOptions.IgnoreCase, RegexTimeout))
         {
             return "elevating";
         }
 
-        if (Regex.IsMatch(text, @"\bswing[- ]away\s+leg\s+rests?\b", RegexOptions.IgnoreCase))
+        if (Regex.IsMatch(text, @"\bswing[- ]away\s+leg\s+rests?\b", RegexOptions.IgnoreCase, RegexTimeout))
         {
             return "swing-away";
         }
 
-        if (Regex.IsMatch(text, @"\bfixed\s+leg\s+rests?\b", RegexOptions.IgnoreCase))
+        if (Regex.IsMatch(text, @"\bfixed\s+leg\s+rests?\b", RegexOptions.IgnoreCase, RegexTimeout))
         {
             return "fixed";
         }
 
-        if (Regex.IsMatch(text, @"\barticulating\s+leg\s+rests?\b", RegexOptions.IgnoreCase))
+        if (Regex.IsMatch(text, @"\barticulating\s+leg\s+rests?\b", RegexOptions.IgnoreCase, RegexTimeout))
         {
             return "articulating";
         }
 
         // Key/value form: "Leg rests: elevating"
-        var kv = Regex.Match(text, @"\bleg\s*rests?\s*[:=]\s*(elevating|swing[- ]away|fixed|articulating)\b", RegexOptions.IgnoreCase);
+        var kv = Regex.Match(text, @"\bleg\s*rests?\s*[:=]\s*(elevating|swing[- ]away|fixed|articulating)\b", RegexOptions.IgnoreCase, RegexTimeout);
         if (kv.Success)
         {
             return kv.Groups[1].Value.ToLowerInvariant();
@@ -138,14 +141,14 @@ internal sealed class WheelchairParser : IPrescriptionParser
     {
         // Match cushion when adjacent to the word "cushion" to avoid “and gel cushion” capturing into leg rests
         // Supports: "gel cushion", "foam cushion", "air cushion", "roho cushion"
-        var m = Regex.Match(text, @"\b(gel|foam|air|roho)\s+cushion\b", RegexOptions.IgnoreCase);
+        var m = Regex.Match(text, @"\b(gel|foam|air|roho)\s+cushion\b", RegexOptions.IgnoreCase, RegexTimeout);
         if (m.Success)
         {
             return m.Groups[1].Value.ToLowerInvariant();
         }
 
         // Key/value form: "Cushion: gel"
-        var kv = Regex.Match(text, @"\bcushion\s*[:=]\s*(gel|foam|air|roho)\b", RegexOptions.IgnoreCase);
+        var kv = Regex.Match(text, @"\bcushion\s*[:=]\s*(gel|foam|air|roho)\b", RegexOptions.IgnoreCase, RegexTimeout);
         if (kv.Success)
         {
             return kv.Groups[1].Value.ToLowerInvariant();
