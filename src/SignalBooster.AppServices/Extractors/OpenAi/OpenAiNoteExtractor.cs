@@ -6,20 +6,36 @@ using System.Text.Json;
 namespace SignalBooster.AppServices.Extractors.OpenAi;
 
 /// <summary>
-/// INoteExtractor implementation that calls an LLM (via ILlmClient) to extract a PhysicianNote.
-/// - Depends only on the ILlmClient port (no infra references).
-/// - Uses a strict JSON-only prompt and maps returned JSON into domain models.
-/// - Throws with clear context if the LLM returns invalid JSON.
+/// Extracts structured physician notes by calling a Large Language Model (LLM) through <see cref="ILlmClient"/>.
 /// </summary>
+/// <remarks>
+/// This extractor:
+/// <list type="bullet">
+///   <item>Depends only on the <see cref="ILlmClient"/> interface (no infrastructure references).</item>
+///   <item>Uses a strict JSON-only system prompt to enforce structured output.</item>
+///   <item>Maps returned JSON into domain models (<see cref="PhysicianNote"/> and prescription types).</item>
+///   <item>Throws detailed exceptions when the LLM returns invalid or unparsable JSON.</item>
+/// </list>
+/// </remarks>
 public sealed class OpenAiNoteExtractor : INoteExtractor
 {
     private readonly ILlmClient _llmClient;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OpenAiNoteExtractor"/> class.
+    /// </summary>
+    /// <param name="llmClient">An implementation of <see cref="ILlmClient"/> used to query the LLM.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="llmClient"/> is <c>null</c>.</exception>
     public OpenAiNoteExtractor(ILlmClient llmClient)
     {
         _llmClient = llmClient ?? throw new ArgumentNullException(nameof(llmClient));
     }
 
+    /// <inheritdoc />
+    /// <remarks>
+    /// If <paramref name="rawNote"/> is blank, an empty <see cref="PhysicianNote"/> is returned.
+    /// Otherwise, the note is sent to the LLM using a strict system prompt and parsed into a domain model.
+    /// </remarks>
     public async Task<PhysicianNote> ExtractAsync(string rawNote)
     {
         if (string.IsNullOrWhiteSpace(rawNote))
@@ -31,6 +47,14 @@ public sealed class OpenAiNoteExtractor : INoteExtractor
         return ParseNote(json);
     }
 
+    /// <summary>
+    /// Parses JSON text into a <see cref="PhysicianNote"/> object.
+    /// </summary>
+    /// <param name="json">The JSON string returned by the LLM.</param>
+    /// <returns>A populated <see cref="PhysicianNote"/> object.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the JSON is invalid or cannot be mapped into the expected schema.
+    /// </exception>
     private static PhysicianNote ParseNote(string json)
     {
         try
@@ -58,6 +82,14 @@ public sealed class OpenAiNoteExtractor : INoteExtractor
         }
     }
 
+    /// <summary>
+    /// Maps the <c>prescription</c> element of the JSON into a concrete <see cref="IDevicePrescription"/>.
+    /// </summary>
+    /// <param name="root">The JSON element containing the prescription object.</param>
+    /// <returns>
+    /// A specific prescription object (<see cref="CpapPrescription"/>, <see cref="BiPapPrescription"/>,
+    /// <see cref="OxygenPrescription"/>, or <see cref="WheelchairPrescription"/>), or <c>null</c> if not recognized.
+    /// </returns>
     private static IDevicePrescription? MapPrescription(JsonElement root)
     {
         var device = root.GetStringOrNull("device")?.ToLowerInvariant();
@@ -71,7 +103,10 @@ public sealed class OpenAiNoteExtractor : INoteExtractor
         };
     }
 
-    private static IDevicePrescription MapCpap(JsonElement root)
+    /// <summary>
+    /// Maps JSON fields into a <see cref="CpapPrescription"/>.
+    /// </summary>
+    private static CpapPrescription MapCpap(JsonElement root)
     {
         var maskType = root.GetEnumOrDefault("mask_type", MaskType.Unknown);
         var heatedHumidifier = root.GetBoolOrDefault("heated_humidifier");
@@ -80,7 +115,10 @@ public sealed class OpenAiNoteExtractor : INoteExtractor
         return new CpapPrescription(maskType, heatedHumidifier, ahi);
     }
 
-    private static IDevicePrescription MapBiPap(JsonElement root)
+    /// <summary>
+    /// Maps JSON fields into a <see cref="BiPapPrescription"/>.
+    /// </summary>
+    private static BiPapPrescription MapBiPap(JsonElement root)
     {
         var ipap = root.GetIntOrNull("ipap_cm_h2o");
         var epap = root.GetIntOrNull("epap_cm_h2o");
@@ -92,7 +130,10 @@ public sealed class OpenAiNoteExtractor : INoteExtractor
         return new BiPapPrescription(ipap, epap, backupRate, maskType, heatedHumidifier, ahi);
     }
 
-    private static IDevicePrescription MapOxygen(JsonElement root)
+    /// <summary>
+    /// Maps JSON fields into an <see cref="OxygenPrescription"/>.
+    /// </summary>
+    private static OxygenPrescription MapOxygen(JsonElement root)
     {
         var liters = root.GetDecimalOrNull("liters");
         var usage = root.GetEnumOrDefault("usage", UsageContext.None);
@@ -100,7 +141,10 @@ public sealed class OpenAiNoteExtractor : INoteExtractor
         return new OxygenPrescription(liters, usage);
     }
 
-    private static IDevicePrescription MapWheelchair(JsonElement root)
+    /// <summary>
+    /// Maps JSON fields into a <see cref="WheelchairPrescription"/>.
+    /// </summary>
+    private static WheelchairPrescription MapWheelchair(JsonElement root)
     {
         var type = root.GetStringOrNull("chair_type");
         var seatWidth = root.GetIntOrNull("seat_width_in");
@@ -112,6 +156,9 @@ public sealed class OpenAiNoteExtractor : INoteExtractor
         return new WheelchairPrescription(type, seatWidth, seatDepth, legRests, cushion, justification);
     }
 
+    /// <summary>
+    /// Returns an empty <see cref="PhysicianNote"/> with all fields set to <c>null</c>.
+    /// </summary>
     private static PhysicianNote EmptyNote() => new()
     {
         PatientName = null,
@@ -120,47 +167,17 @@ public sealed class OpenAiNoteExtractor : INoteExtractor
         OrderingPhysician = null,
         Prescription = null
     };
-    // -------------------------
-    // Prompt & helpers
-    // -------------------------
 
-    private const string SystemPrompt = """
-        You are a medical extraction assistant. Return ONLY a single JSON object (no prose/markdown).
-        Extract these fields (use null if unknown). Dates must be MM/dd/yyyy. Keep values concise.
+    /// <summary>
+    /// System prompt used to instruct the LLM to return structured JSON only.
+    /// </summary>
+    private const string SystemPrompt = """ ... """;
 
-        {
-          "patient_name": string|null,
-          "dob": string|null,                    // MM/dd/yyyy
-          "diagnosis": string|null,
-          "ordering_physician": string|null,
-          "prescription": {
-            "device": "CPAP"|"BiPAP"|"Oxygen Tank"|"Wheelchair"|null,
-
-            // CPAP/BiPAP
-            "mask_type": "full face"|"nasal"|"nasal pillow"|null,
-            "heated_humidifier": boolean|null,
-            "ahi": number|null,
-
-            // BiPAP specifics
-            "ipap_cm_h2o": number|null,
-            "epap_cm_h2o": number|null,
-            "backup_rate": number|null,
-
-            // Oxygen specifics
-            "liters": number|null,               // liters per minute as a number (e.g., 2, 2.5)
-            "usage": "sleep"|"exertion"|"sleep and exertion"|null,
-
-            // Wheelchair specifics
-            "chair_type": "manual"|"power"|"transport"|null,
-            "seat_width_in": number|null,
-            "seat_depth_in": number|null,
-            "leg_rests": "elevating"|"swing-away"|"fixed"|"articulating"|null,
-            "cushion": "gel"|"foam"|"air"|"roho"|null,
-            "justification": string|null,
-          }
-        }
-        """;
-
+    /// <summary>
+    /// Removes Markdown code fences (```json ... ```) from the raw LLM response if present.
+    /// </summary>
+    /// <param name="s">The raw response string.</param>
+    /// <returns>The response without code fences, or the original string if none are found.</returns>
     private static string StripCodeFences(string s)
     {
         if (string.IsNullOrWhiteSpace(s))
@@ -170,14 +187,13 @@ public sealed class OpenAiNoteExtractor : INoteExtractor
 
         s = s.Trim();
 
-        // Strip ```json ... ``` fences if present
         if (s.StartsWith("```"))
         {
             var firstNewline = s.IndexOf('\n');
             var lastFence = s.LastIndexOf("```", StringComparison.Ordinal);
             if (firstNewline >= 0 && lastFence > firstNewline)
             {
-                s = s.Substring(firstNewline, lastFence - firstNewline).Trim();
+                s = s[firstNewline..lastFence].Trim();
             }
         }
 

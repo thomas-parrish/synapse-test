@@ -3,13 +3,33 @@ using System.Text.RegularExpressions;
 
 namespace SignalBooster.AppServices.Extractors.Parsing;
 
+/// <summary>
+/// Utility for extracting oxygen flow rates (in liters per minute) from free-text physician notes.
+/// </summary>
+/// <remarks>
+/// This parser handles multiple common notations such as <c>L/min</c>, <c>LPM</c>, and implicit <c>L</c>.
+/// If no recognizable flow rate is found, it returns <c>null</c>.
+/// </remarks>
 internal static class FlowRateParser
 {
-
-    // -------------------------
-    // Device-specific parsing
-    // -------------------------
-
+    /// <summary>
+    /// Attempts to parse an oxygen flow rate value from raw physician note text.
+    /// </summary>
+    /// <param name="raw">The free-text input (e.g., "Oxygen at 2 L/min while sleeping").</param>
+    /// <returns>
+    /// A <see cref="decimal"/> representing the flow rate in liters per minute, 
+    /// or <c>null</c> if no match is found.
+    /// </returns>
+    /// <example>
+    /// Examples that successfully parse:
+    /// <list type="bullet">
+    ///   <item><description><c>"2 L/min"</c> → <c>2.0</c></description></item>
+    ///   <item><description><c>"2.5 L/min"</c> → <c>2.5</c></description></item>
+    ///   <item><description><c>"2 L per min"</c> → <c>2.0</c></description></item>
+    ///   <item><description><c>"2 L"</c> → <c>2.0</c> (assumed liters per minute)</description></item>
+    ///   <item><description><c>"2.5 LPM"</c> → <c>2.5</c></description></item>
+    /// </list>
+    /// </example>
     public static decimal? Parse(string raw)
     {
         // Matches formats like:

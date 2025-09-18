@@ -3,13 +3,45 @@ using System.Text.RegularExpressions;
 
 namespace SignalBooster.AppServices.Extractors.Parsing.Prescriptions;
 
+/// <summary>
+/// Parser for extracting wheelchair prescription details from unstructured physician notes.
+/// </summary>
+/// <remarks>
+/// Recognizes wheelchair prescriptions by scanning for the keyword "wheelchair".
+/// Extracts chair type (manual, power, transport), seat width/depth, accessories
+/// (leg rests, cushion), and optional justification text.
+/// </remarks>
 internal sealed class WheelchairParser : IPrescriptionParser
 {
+    /// <summary>
+    /// Determines whether the provided hint text suggests a wheelchair prescription.
+    /// </summary>
+    /// <param name="hint">A lowercased hint string (often derived from the note text).</param>
+    /// <returns>
+    /// <c>true</c> if the hint contains the keyword "wheelchair"; otherwise, <c>false</c>.
+    /// </returns>
     public bool Matches(string hint)
     {
         return hint.Contains("wheelchair");
     }
 
+    /// <summary>
+    /// Parses wheelchair prescription details from the provided structured and unstructured text sources.
+    /// </summary>
+    /// <param name="fields">Structured key-value fields extracted from the note.</param>
+    /// <param name="fullText">The full free-text content of the physician note.</param>
+    /// <param name="hint">A lowercased hint string (often derived from the note text).</param>
+    /// <returns>
+    /// An instance of <see cref="WheelchairPrescription"/> populated with:
+    /// <list type="bullet">
+    ///   <item><description><b>Type</b>: Manual, power, or transport (inferred if not given explicitly).</description></item>
+    ///   <item><description><b>Seat Width/Depth</b>: Numeric measurements in inches (parsed from text patterns).</description></item>
+    ///   <item><description><b>Leg Rests</b>: Elevating, swing-away, fixed, or articulating (matched via regex or key/value).</description></item>
+    ///   <item><description><b>Cushion</b>: Gel, foam, air, or roho (matched via regex or key/value).</description></item>
+    ///   <item><description><b>Justification</b>: Optional rationale (e.g., functional need) if present in structured fields.</description></item>
+    /// </list>
+    /// Returns <c>null</c> if parsing fails.
+    /// </returns>
     public IDevicePrescription? Parse(Dictionary<string, string> fields, string fullText, string hint)
     {
         // --- Type ---
@@ -39,6 +71,9 @@ internal sealed class WheelchairParser : IPrescriptionParser
         );
     }
 
+    /// <summary>
+    /// Infers wheelchair type (manual, power, transport) from free-text descriptions.
+    /// </summary>
     private static string? InferWheelchairType(string text)
     {
         // Matches:
@@ -57,7 +92,10 @@ internal sealed class WheelchairParser : IPrescriptionParser
         return null;
     }
 
-
+    /// <summary>
+    /// Finds and normalizes leg-rest type (elevating, swing-away, fixed, articulating)
+    /// from free-text or key/value pairs in the note.
+    /// </summary>
     private static string? FindLegRests(string text)
     {
         // Match specific leg-rest terms only (avoid grabbing “and gel cushion”)
@@ -92,6 +130,10 @@ internal sealed class WheelchairParser : IPrescriptionParser
         return null;
     }
 
+    /// <summary>
+    /// Finds and normalizes cushion type (gel, foam, air, roho) from free-text
+    /// or key/value pairs in the note.
+    /// </summary>
     private static string? FindCushion(string text)
     {
         // Match cushion when adjacent to the word "cushion" to avoid “and gel cushion” capturing into leg rests
